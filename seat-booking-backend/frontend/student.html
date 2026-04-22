@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal - Library Booking</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📖 Student Portal</h1>
+            <a href="index.html" class="back-btn">← Back</a>
+        </div>
+        
+        <div class="student-info">
+            <div class="form-group">
+                <label>Student Name:</label>
+                <input type="text" id="studentName" placeholder="Enter your full name" required>
+            </div>
+            <div class="form-group">
+                <label>Student ID (Format: STUXXXXXXXX):</label>
+                <input type="text" id="studentId" placeholder="e.g., STU20240001" required>
+            </div>
+        </div>
+        
+        <div id="bookingStatus" class="booking-status"></div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="seat-status available"></div>
+                <span>Available</span>
+            </div>
+            <div class="legend-item">
+                <div class="seat-status booked"></div>
+                <span>Booked (Not Reached)</span>
+            </div>
+            <div class="legend-item">
+                <div class="seat-status reached"></div>
+                <span>Reached (Confirmed)</span>
+            </div>
+        </div>
+        
+        <div id="seatsContainer" class="seats-container"></div>
+        
+        <div class="refresh-info">
+            <p>🔄 Auto-refreshes every 10 seconds</p>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

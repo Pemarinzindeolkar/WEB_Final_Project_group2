@@ -1,14 +1,11 @@
-import express from "express";
-import {
-  fetchSeats,
-  reserveSeat,
-  releaseSeat
-} from "../controllers/seatController.js";
+import express from 'express';
+import { getAvailableSeats, bookSeat, markReached, getSeatStatus } from '../controllers/seatController.js';
 
 const router = express.Router();
 
-router.get("/", fetchSeats);
-router.post("/book", reserveSeat);
-router.post("/cancel", releaseSeat);
+router.get('/available', getAvailableSeats);
+router.get('/status', getSeatStatus);
+router.post('/book', bookSeat);
+router.post('/reach/:seatId', markReached);
 
 export default router;
