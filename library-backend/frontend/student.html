@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal - Library Booking</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Library Booking System</h1>
+            <a href="/" class="back-btn">← Back</a>
+        </div>
+
+        <div id="studentInfo" class="student-info" style="display:none;">
+            <div class="info-card">
+                <h3>Welcome, <span id="displayStudentName"></span></h3>
+                <p>Student ID: <span id="displayStudentId"></span></p>
+            </div>
+        </div>
+
+        <div id="registerForm" class="form-container">
+            <h2>Student Registration</h2>
+            <input type="text" id="regStudentId" placeholder="Student ID (e.g., 02250362)" required>
+            <input type="text" id="regFullName" placeholder="Full Name" required>
+            <button onclick="registerStudent()" class="btn-primary">Register</button>
+        </div>
+
+        <div id="bookingSection" style="display:none;">
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-circle available"></div>
+                    <span>Available</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-circle booked"></div>
+                    <span>Booked</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-circle verified"></div>
+                    <span>Verified</span>
+                </div>
+            </div>
+
+            <div class="admin-controls">
+                <button onclick="loadAllSeats()" class="btn-primary">View All Seats</button>
+                <button onclick="viewMyBookings()" class="btn-primary">My Bookings</button>
+                <select id="floorSelect" onchange="filterByFloor()">
+                    <option value="all">All Floors</option>
+                    <option value="1">Ground Floor</option>
+                    <option value="2">First Floor</option>
+                </select>
+            </div>
+            <div id="seatsContainer"></div>
+        </div>
+
+        <div id="bookingsContainer" class="bookings-container" style="display:none;"></div>
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        let currentStudent = null;
+        let allSeatsData = [];
+
+        function showMessage(msg, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = msg;
+            msgDiv.className = `message ${type}`;
+            msgDiv.style.display = 'block';
+            setTimeout(() => {
+                msgDiv.style.display = 'none';
+            }, 4000);
+        }
+
+        async function registerStudent() {
+            const student_id = document.getElementById('regStudentId').value.trim();
+            const full_name = document.getElementById('regFullName').value.trim();
+            
+            if (!student_id || !full_name) {
+                showMessage('Please enter Student ID and Name', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/student/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ student_id, full_name })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success || data.student) {
+                    currentStudent = { student_id, full_name };
+                    document.getElementById('displayStudentId').textContent = student_id;
+                    document.getElementById('displayStudentName').textContent = full_name;
+                    document.getElementById('studentInfo').style.display = 'block';
+                    document.getElementById('registerForm').style.display = 'none';
+                    document.getElementById('bookingSection').style.display = 'block';
+                    showMessage('Registration successful!', 'success');
+                    loadAllSeats();
+                } else {
+                    showMessage(data.error || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                showMessage('Connection error. Is the server running?', 'error');
+            }
+        }
+
+        async function loadAllSeats() {
+            try {
+                const response = await fetch('/api/admin/seats');
+                allSeatsData = await response.json();
+                filterByFloor();
+            } catch (error) {
+                showMessage('Error loading seats', 'error');
+            }
+        }
+
+        function filterByFloor() {
+            const floorFilter = document.getElementById('floorSelect').value;
+            let filtered = allSeatsData;
+            
+            if (floorFilter !== 'all') {
+                filtered = allSeatsData.filter(seat => seat.floor_number == floorFilter);
+            }
+            
+            displayTables(filtered);
+        }
+
+        function displayTables(seats) {
+            const container = document.getElementById('seatsContainer');
+            document.getElementById('bookingsContainer').style.display = 'none';
+            
+            if (!seats || seats.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding:40px;">No seats available</p>';
+                return;
+            }
+            
+            // Group by floor
+            const floors = {};
+            seats.forEach(seat => {
+                if (!floors[seat.floor_number]) floors[seat.floor_number] = [];
+                floors[seat.floor_number].push(seat);
+            });
+            
+            let html = '';
+            
+            for (const [floorNum, floorSeats] of Object.entries(floors)) {
+                const floorName = floorNum === '1' ? 'Ground Floor' : 'First Floor';
+                
+                // Group by table
+                const tables = {};
+                floorSeats.forEach(seat => {
+                    if (!tables[seat.table_number]) tables[seat.table_number] = [];
+                    tables[seat.table_number].push(seat);
+                });
+                
+                html += `<div class="floor-section">`;
+                html += `<div class="floor-title">${floorName}</div>`;
+                html += `<div class="tables-grid">`;
+                
+                // Sort tables by number
+                const sortedTables = Object.keys(tables).sort((a,b) => a - b);
+                
+                for (const tableNum of sortedTables) {
+                    const tableSeats = tables[tableNum];
+                    // Sort seats by seat_number
+                    tableSeats.sort((a,b) => a.seat_number - b.seat_number);
+                    
+                    // Seat positions: seat1 = top-left, seat2 = top-right, seat3 = bottom-left, seat4 = bottom-right
+                    html += `
+                        <div class="table-card">
+                            <div class="table-number">Table ${tableNum}</div>
+                            <div class="table-layout">
+                                <div class="chair ${getSeatClass(tableSeats[0])} chair-top-left" onclick="handleSeatClick(${tableSeats[0].id}, '${tableSeats[0].status}', ${tableSeats[0].verified})">
+                                    ${tableSeats[0].seat_number}
+                                </div>
+                                <div class="chair ${getSeatClass(tableSeats[1])} chair-top-right" onclick="handleSeatClick(${tableSeats[1].id}, '${tableSeats[1].status}', ${tableSeats[1].verified})">
+                                    ${tableSeats[1].seat_number}
+                                </div>
+                                <div class="chair ${getSeatClass(tableSeats[2])} chair-bottom-left" onclick="handleSeatClick(${tableSeats[2].id}, '${tableSeats[2].status}', ${tableSeats[2].verified})">
+                                    ${tableSeats[2].seat_number}
+                                </div>
+                                <div class="chair ${getSeatClass(tableSeats[3])} chair-bottom-right" onclick="handleSeatClick(${tableSeats[3].id}, '${tableSeats[3].status}', ${tableSeats[3].verified})">
+                                    ${tableSeats[3].seat_number}
+                                </div>
+                                <div class="table-rectangle"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                html += `</div></div>`;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function getSeatClass(seat) {
+            if (!seat) return '';
+            if (seat.status === 'available') return 'available';
+            if (seat.verified) return 'verified';
+            return 'booked';
+        }
+
+        async function handleSeatClick(seatId, status, verified) {
+            if (!currentStudent) {
+                showMessage('Please register first', 'error');
+                return;
+            }
+            
+            if (status === 'booked') {
+                showMessage('This seat is already booked', 'error');
+                return;
+            }
+            
+            if (verified) {
+                showMessage('This seat is already verified and occupied', 'error');
+                return;
+            }
+            
+            const seat = allSeatsData.find(s => s.id === seatId);
+            if (confirm(`Book ${seat.seat_label}?`)) {
+                await bookSeat(seatId);
+            }
+        }
+
+        async function bookSeat(seatId) {
+            try {
+                const response = await fetch('/api/student/book', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        student_id: currentStudent.student_id,
+                        seat_id: seatId,
+                        student_name: currentStudent.full_name
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('Seat booked! Please inform admin for verification (30 min limit)', 'success');
+                    loadAllSeats();
+                } else {
+                    showMessage(data.error || 'Booking failed', 'error');
+                }
+            } catch (error) {
+                showMessage('Error booking seat', 'error');
+            }
+        }
+
+        async function viewMyBookings() {
+            try {
+                const response = await fetch(`/api/student/my-bookings/${currentStudent.student_id}`);
+                const data = await response.json();
+                
+                const container = document.getElementById('bookingsContainer');
+                const seatsContainer = document.getElementById('seatsContainer');
+                seatsContainer.innerHTML = '';
+                container.style.display = 'block';
+                
+                if (!data.bookings || data.bookings.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; padding:40px;">No bookings found</p><button onclick="loadAllSeats()" class="btn-primary">Back to Seats</button>';
+                    return;
+                }
+                
+                let tableHtml = `
+                    <h3>My Bookings</h3>
+                    <table class="bookings-table">
+                        <thead>
+                            <tr><th>Table</th><th>Seat</th><th>Floor</th><th>Booked</th><th>Expires</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                for (const booking of data.bookings) {
+                    let statusText = '';
+                    if (booking.verified) statusText = 'Verified ✓';
+                    else if (booking.cancelled) statusText = 'Cancelled ✗';
+                    else statusText = 'Pending ⏳';
+                    
+                    tableHtml += `
+                        <tr>
+                            <td>Table ${booking.table_number}</td>
+                            <td>Seat ${booking.seat_number}</td>
+                            <td>${booking.floor_number === 1 ? 'Ground' : 'First'}</td>
+                            <td>${new Date(booking.booking_time).toLocaleString()}</td>
+                            <td>${new Date(booking.expires_at).toLocaleString()}</td>
+                            <td>${statusText}</td>
+                        </tr>
+                    `;
+                }
+                
+                tableHtml += `
+                        </tbody>
+                    </table>
+                    <button onclick="loadAllSeats()" class="btn-primary" style="margin-top:20px;">Back to Seats</button>
+                `;
+                
+                container.innerHTML = tableHtml;
+            } catch (error) {
+                showMessage('Error loading bookings', 'error');
+            }
+        }
+
+        // Test connection
+        fetch('/api/health').catch(() => {
+            showMessage('Cannot connect to server. Please start the backend with: node server.js', 'error');
+        });
+    </script>
+</body>
+</html>

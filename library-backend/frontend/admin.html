@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal - Library Booking</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Admin Portal</h1>
+            <a href="/" class="back-btn">Back to Home</a>
+        </div>
+
+        <div id="loginForm" class="form-container">
+            <h2>Admin Login</h2>
+            <input type="text" id="adminUsername" placeholder="Username" required>
+            <input type="password" id="adminPassword" placeholder="Password" required>
+            <button onclick="adminLogin()" class="btn-primary">Login</button>
+            <p class="demo-note">Demo: admin / admin123</p>
+        </div>
+
+        <div id="adminPanel" style="display:none;">
+            <div class="admin-header">
+                <h2>Welcome, <span id="adminName"></span></h2>
+                <button onclick="adminLogout()" class="btn-danger">Logout</button>
+            </div>
+
+            <div class="admin-controls">
+                <button onclick="loadAdminSeats()" class="btn-primary">View All Seats</button>
+                <button onclick="loadAllBookings()" class="btn-primary">View All Bookings</button>
+                <button onclick="loadStatistics()" class="btn-primary">Refresh Statistics</button>
+            </div>
+
+            <div id="statistics" class="stats-grid"></div>
+            
+            <div class="filter-controls">
+                <label>Filter by Floor:</label>
+                <select id="floorFilter" onchange="filterSeatsByFloor()">
+                    <option value="all">All Floors</option>
+                    <option value="1">Ground Floor</option>
+                    <option value="2">First Floor</option>
+                </select>
+            </div>
+
+            <div id="seatsContainer" class="seats-grid"></div>
+            <div id="bookingsContainer" class="bookings-table"></div>
+        </div>
+    </div>
+
+    <script src="/admin-script.js"></script>
+</body>
+</html>

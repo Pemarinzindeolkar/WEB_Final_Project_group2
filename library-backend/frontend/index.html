@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Booking System</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Library Seat Booking System</h1>
+        
+        <div class="portal-buttons">
+            <a href="/student.html" class="portal-btn student-btn">
+                <div class="btn-icon">Student Portal</div>
+                <div class="btn-text">Book a Seat</div>
+            </a>
+            <a href="/admin.html" class="portal-btn admin-btn">
+                <div class="btn-icon">Admin Portal</div>
+                <div class="btn-text">Manage System</div>
+            </a>
+        </div>
+        
+        <div class="stats-preview" id="statsPreview">
+            <h3>System Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load statistics on homepage
+        fetch('/api/admin/statistics')
+            .then(res => res.json())
+            .then(data => {
+                document.querySelector('.stats-grid').innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-number">${data.total_seats}</div>
+                        <div class="stat-label">Total Seats</div>
+                    </div>
+                    <div class="stat-card available">
+                        <div class="stat-number">${data.available_seats}</div>
+                        <div class="stat-label">Available</div>
+                    </div>
+                    <div class="stat-card booked">
+                        <div class="stat-number">${data.booked_seats}</div>
+                        <div class="stat-label">Booked</div>
+                    </div>
+                    <div class="stat-card active">
+                        <div class="stat-number">${data.active_bookings}</div>
+                        <div class="stat-label">Active Bookings</div>
+                    </div>
+                `;
+            })
+            .catch(err => console.error('Error loading stats:', err));
+    </script>
+</body>
+</html>
