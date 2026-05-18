@@ -1,7 +1,6 @@
 import { getDb } from '../database.js';
 import bcrypt from 'bcrypt';
 
-// Admin login
 export async function adminLogin(req, res) {
   try {
     const { username, password } = req.body;
@@ -36,7 +35,6 @@ export async function adminLogin(req, res) {
   }
 }
 
-// Get all seats with booking info
 export async function getAllSeats(req, res) {
   try {
     const pool = await getDb();
@@ -47,6 +45,7 @@ export async function getAllSeats(req, res) {
         b.student_id, 
         b.student_name,
         b.booking_time,
+        b.booking_date,
         b.expires_at,
         b.verified
        FROM seats s
@@ -61,7 +60,6 @@ export async function getAllSeats(req, res) {
   }
 }
 
-// Get all bookings
 export async function getAllBookings(req, res) {
   try {
     const pool = await getDb();
@@ -70,7 +68,7 @@ export async function getAllBookings(req, res) {
       `SELECT b.*, s.floor_number, s.table_number, s.seat_number, s.seat_label 
        FROM bookings b
        JOIN seats s ON b.seat_id = s.id
-       ORDER BY b.booking_time DESC
+       ORDER BY b.booking_date DESC, b.booking_time DESC
        LIMIT 100`
     );
     
@@ -80,7 +78,6 @@ export async function getAllBookings(req, res) {
   }
 }
 
-// Verify a booking
 export async function verifyBooking(req, res) {
   try {
     const { bookingId } = req.params;
@@ -114,7 +111,6 @@ export async function verifyBooking(req, res) {
   }
 }
 
-// Remove booking (admin)
 export async function removeBooking(req, res) {
   try {
     const { bookingId } = req.params;
@@ -153,7 +149,6 @@ export async function removeBooking(req, res) {
   }
 }
 
-// Get statistics
 export async function getStatistics(req, res) {
   try {
     const pool = await getDb();
@@ -162,7 +157,7 @@ export async function getStatistics(req, res) {
     const availableSeats = await pool.query("SELECT COUNT(*) as count FROM seats WHERE status = 'available'");
     const bookedSeats = await pool.query("SELECT COUNT(*) as count FROM seats WHERE status = 'booked'");
     const activeBookings = await pool.query(
-      "SELECT COUNT(*) as count FROM bookings WHERE verified = false AND cancelled = false AND expires_at > NOW()"
+      "SELECT COUNT(*) as count FROM bookings WHERE verified = false AND cancelled = false"
     );
     const totalStudents = await pool.query('SELECT COUNT(*) as count FROM students');
     

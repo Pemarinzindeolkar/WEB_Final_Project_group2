@@ -1,17 +1,22 @@
 import pkg from 'pg';
 const { Pool } = pkg;
 import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 let pool;
 
 export async function getDb() {
   if (!pool) {
+    // Use environment variables for production, fallback to local for development
     pool = new Pool({
-      host: 'localhost',
-      port: 5432,
-      database: 'library_db',
-      user: 'pema',
-      password: '',
+      host: process.env.DB_HOST || 'localhost',
+      port: process.env.DB_PORT || 5432,
+      database: process.env.DB_NAME || 'library_db',
+      user: process.env.DB_USER || 'pema',
+      password: process.env.DB_PASSWORD || '',
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
     });
   }
   return pool;
@@ -31,6 +36,7 @@ export async function initializeDatabase() {
         full_name VARCHAR(100) NOT NULL,
         email VARCHAR(100),
         phone VARCHAR(20),
+        password_hash VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -51,6 +57,7 @@ export async function initializeDatabase() {
         student_name VARCHAR(100) NOT NULL,
         booking_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         expires_at TIMESTAMP NOT NULL,
+        booking_date DATE DEFAULT CURRENT_DATE,
         verified BOOLEAN DEFAULT FALSE,
         verified_by VARCHAR(50),
         verified_at TIMESTAMP,
@@ -67,11 +74,35 @@ export async function initializeDatabase() {
         full_name VARCHAR(100),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS student_preferences (
+        id SERIAL PRIMARY KEY,
+        student_id VARCHAR(20) NOT NULL REFERENCES students(student_id),
+        favorite_seat_id INTEGER REFERENCES seats(id),
+        preferred_floor INTEGER,
+        notifications_enabled BOOLEAN DEFAULT TRUE,
+        email_reminders BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS password_resets (
+        id SERIAL PRIMARY KEY,
+        student_id VARCHAR(20) NOT NULL REFERENCES students(student_id),
+        token VARCHAR(255) NOT NULL UNIQUE,
+        expires_at TIMESTAMP NOT NULL,
+        used BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_bookings_student ON bookings(student_id);
+      CREATE INDEX IF NOT EXISTS idx_bookings_seat ON bookings(seat_id);
+      CREATE INDEX IF NOT EXISTS idx_seats_status ON seats(status, floor_number);
     `);
     
     console.log('Tables created successfully!');
     
-    // Check if seats exist
+    // Initialize seats if empty
     const seatCount = await client.query('SELECT COUNT(*) FROM seats');
     
     if (parseInt(seatCount.rows[0].count) === 0) {
@@ -84,7 +115,8 @@ export async function initializeDatabase() {
             const seatLabel = `${floorName} - Table ${table}, Seat ${seat}`;
             
             await client.query(
-              'INSERT INTO seats (floor_number, table_number, seat_number, seat_label, status) VALUES ($1, $2, $3, $4, $5)',
+              `INSERT INTO seats (floor_number, table_number, seat_number, seat_label, status) 
+               VALUES ($1, $2, $3, $4, $5)`,
               [floor, table, seat, seatLabel, 'available']
             );
           }
@@ -93,22 +125,23 @@ export async function initializeDatabase() {
       console.log('200 seats created!');
     }
     
-    // Check if admin exists
+    // Initialize admin user
     const adminCount = await client.query('SELECT COUNT(*) FROM admins');
     
     if (parseInt(adminCount.rows[0].count) === 0) {
-      const hashedPassword = await bcrypt.hash('admin123', 10);
+      const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'admin123', 10);
       await client.query(
-        'INSERT INTO admins (username, password_hash, full_name) VALUES ($1, $2, $3)',
-        ['admin', hashedPassword, 'Library Admin']
+        `INSERT INTO admins (username, password_hash, full_name) 
+         VALUES ($1, $2, $3)`,
+        ['admin', hashedPassword, 'Library Administrator']
       );
-      console.log('Admin user created! Username: admin, Password: admin123');
+      console.log('Admin user created! Username: admin');
     }
     
     console.log('Database setup complete!');
     
   } catch (error) {
-    console.error('Error:', error.message);
+    console.error('Database initialization error:', error.message);
   } finally {
     client.release();
   }
@@ -131,7 +164,6 @@ export async function cleanupExpiredBookings() {
       RETURNING id
     `);
     
-    // Release seats for expired bookings
     for (const booking of result.rows) {
       await client.query(`
         UPDATE seats 

@@ -24,12 +24,18 @@
         <div class="stats-preview" id="statsPreview">
             <h3>System Statistics</h3>
             <div class="stats-grid">
-                <div class="stat">Loading...</div>
+                <div class="stat-card">Loading...</div>
             </div>
         </div>
+        
+        <button onclick="goBack()" class="back-btn" style="margin-top: 20px;">← Back</button>
     </div>
 
     <script>
+        function goBack() {
+            window.history.back();
+        }
+        
         // Load statistics on homepage
         fetch('/api/admin/statistics')
             .then(res => res.json())

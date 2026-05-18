@@ -57,3 +57,5 @@ app.listen(PORT, () => {
   console.log(`Admin Portal: http://localhost:${PORT}/admin.html`);
   console.log(`Health check: http://localhost:${PORT}/api/health`);
 });
+// Import reminder scheduler
+import './utils/reminderScheduler.js';

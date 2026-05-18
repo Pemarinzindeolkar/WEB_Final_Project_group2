@@ -5,12 +5,105 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Portal - Library Booking</title>
     <link rel="stylesheet" href="/style.css">
+    <style>
+        .auth-container {
+            max-width: 450px;
+            margin: 0 auto;
+        }
+        .auth-tabs {
+            display: flex;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 24px;
+        }
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #94a3b8;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+        .auth-tab.active {
+            color: #1e40af;
+            border-bottom: 3px solid #1e40af;
+        }
+        .auth-panel {
+            display: none;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .auth-panel.active {
+            display: flex;
+        }
+        .auth-panel h2 {
+            margin: 0 0 4px 0;
+            font-size: 20px;
+            color: #1e293b;
+        }
+        .auth-panel input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .auth-panel input:focus {
+            border-color: #1e40af;
+        }
+        .switch-link {
+            text-align: center;
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 6px;
+        }
+        .switch-link a {
+            color: #1e40af;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .forgot-link {
+            text-align: right;
+            font-size: 12px;
+            margin-top: -8px;
+        }
+        .forgot-link a {
+            color: #64748b;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .filter-bar select, .filter-bar input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .preferences-panel {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>Library Booking System</h1>
-            <a href="/" class="back-btn">← Back</a>
+            <button onclick="goBack()" class="back-btn">← Back</button>
         </div>
 
         <div id="studentInfo" class="student-info" style="display:none;">
@@ -18,40 +111,88 @@
                 <h3>Welcome, <span id="displayStudentName"></span></h3>
                 <p>Student ID: <span id="displayStudentId"></span></p>
             </div>
+            <button onclick="logout()" class="btn-danger" style="margin-top:10px;">Logout</button>
         </div>
 
-        <div id="registerForm" class="form-container">
-            <h2>Student Registration</h2>
-            <input type="text" id="regStudentId" placeholder="Student ID (e.g., 02250362)" required>
-            <input type="text" id="regFullName" placeholder="Full Name" required>
-            <button onclick="registerStudent()" class="btn-primary">Register</button>
+        <div id="authSection" class="form-container auth-container">
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Login</button>
+                <button class="auth-tab" id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+            </div>
+
+            <div id="panelLogin" class="auth-panel active">
+                <h2>Student Login</h2>
+                <input type="text" id="loginStudentId" placeholder="Student ID" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <div class="forgot-link"><a onclick="showForgotPassword()">Forgot Password?</a></div>
+                <button onclick="loginStudent()" class="btn-primary">Login</button>
+                <div class="switch-link">Don't have an account? <a onclick="switchTab('signup')">Sign Up</a></div>
+            </div>
+
+            <div id="panelSignup" class="auth-panel">
+                <h2>Create Account</h2>
+                <input type="text" id="regStudentId" placeholder="Student ID" required>
+                <input type="text" id="regFullName" placeholder="Full Name" required>
+                <input type="email" id="regEmail" placeholder="Email (required for password reset)">
+                <input type="tel" id="regPhone" placeholder="Phone">
+                <input type="password" id="regPassword" placeholder="Password" required>
+                <button onclick="signupStudent()" class="btn-primary">Sign Up</button>
+                <div class="switch-link">Already have an account? <a onclick="switchTab('login')">Login</a></div>
+            </div>
+
+            <div id="forgotPanel" class="auth-panel" style="display:none;">
+                <h2>Forgot Password</h2>
+                <input type="text" id="forgotStudentId" placeholder="Student ID" required>
+                <input type="email" id="forgotEmail" placeholder="Email Address" required>
+                <button onclick="sendResetLink()" class="btn-primary">Send Reset Link</button>
+                <div class="switch-link"><a onclick="showLogin()">Back to Login</a></div>
+            </div>
         </div>
 
         <div id="bookingSection" style="display:none;">
             <div class="legend">
-                <div class="legend-item">
-                    <div class="legend-circle available"></div>
-                    <span>Available</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-circle booked"></div>
-                    <span>Booked</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-circle verified"></div>
-                    <span>Verified</span>
-                </div>
+                <div class="legend-item"><div class="legend-circle available"></div><span>Available</span></div>
+                <div class="legend-item"><div class="legend-circle booked"></div><span>Booked</span></div>
+                <div class="legend-item"><div class="legend-circle verified"></div><span>Verified</span></div>
             </div>
 
             <div class="admin-controls">
                 <button onclick="loadAllSeats()" class="btn-primary">View All Seats</button>
                 <button onclick="viewMyBookings()" class="btn-primary">My Bookings</button>
+                <button onclick="showPreferences()" class="btn-primary">Preferences</button>
                 <select id="floorSelect" onchange="filterByFloor()">
                     <option value="all">All Floors</option>
                     <option value="1">Ground Floor</option>
                     <option value="2">First Floor</option>
                 </select>
             </div>
+
+            <div id="preferencesPanel" class="preferences-panel" style="display:none;">
+                <h3>Seat Preferences</h3>
+                <div id="preferencesContent"></div>
+                <button onclick="savePreferences()" class="btn-primary">Save Preferences</button>
+                <button onclick="bookFavoriteSeat()" class="btn-primary">Book My Favorite Seat</button>
+                <button onclick="closePreferences()" class="btn-danger">Close</button>
+            </div>
+
+            <div id="filterBar" class="filter-bar" style="display:none;">
+                <select id="dateRangeFilter">
+                    <option value="">All Dates</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                </select>
+                <select id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="verified">Verified</option>
+                    <option value="pending">Pending</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="expired">Expired</option>
+                </select>
+                <button onclick="applyFilters()" class="btn-primary">Apply Filters</button>
+                <button onclick="clearFilters()" class="btn-danger">Clear</button>
+            </div>
+
             <div id="seatsContainer"></div>
         </div>
 
@@ -63,49 +204,133 @@
         let currentStudent = null;
         let allSeatsData = [];
 
+        // Go back to previous page
+        function goBack() {
+            window.history.back();
+        }
+
+        function switchTab(tab) {
+            document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+            document.getElementById('tabSignup').classList.toggle('active', tab === 'signup');
+            document.getElementById('panelLogin').classList.toggle('active', tab === 'login');
+            document.getElementById('panelSignup').classList.toggle('active', tab === 'signup');
+            document.getElementById('forgotPanel').style.display = 'none';
+            document.getElementById('authSection').style.display = 'block';
+        }
+
+        function showForgotPassword() {
+            document.getElementById('panelLogin').style.display = 'none';
+            document.getElementById('panelSignup').style.display = 'none';
+            document.getElementById('forgotPanel').style.display = 'flex';
+        }
+
+        function showLogin() {
+            document.getElementById('forgotPanel').style.display = 'none';
+            document.getElementById('panelLogin').style.display = 'flex';
+            document.getElementById('panelSignup').style.display = 'none';
+        }
+
         function showMessage(msg, type) {
             const msgDiv = document.getElementById('message');
             msgDiv.textContent = msg;
-            msgDiv.className = `message ${type}`;
+            msgDiv.className = 'message ' + type;
             msgDiv.style.display = 'block';
-            setTimeout(() => {
-                msgDiv.style.display = 'none';
-            }, 4000);
+            setTimeout(() => { msgDiv.style.display = 'none'; }, 4000);
         }
 
-        async function registerStudent() {
-            const student_id = document.getElementById('regStudentId').value.trim();
-            const full_name = document.getElementById('regFullName').value.trim();
-            
-            if (!student_id || !full_name) {
-                showMessage('Please enter Student ID and Name', 'error');
-                return;
-            }
+        async function sendResetLink() {
+            const student_id = document.getElementById('forgotStudentId').value;
+            const email = document.getElementById('forgotEmail').value;
             
             try {
-                const response = await fetch('/api/student/register', {
+                const response = await fetch('/api/student/forgot-password', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ student_id, full_name })
+                    body: JSON.stringify({ student_id, email })
                 });
-                
                 const data = await response.json();
-                
-                if (data.success || data.student) {
-                    currentStudent = { student_id, full_name };
-                    document.getElementById('displayStudentId').textContent = student_id;
-                    document.getElementById('displayStudentName').textContent = full_name;
-                    document.getElementById('studentInfo').style.display = 'block';
-                    document.getElementById('registerForm').style.display = 'none';
-                    document.getElementById('bookingSection').style.display = 'block';
-                    showMessage('Registration successful!', 'success');
-                    loadAllSeats();
+                if (data.success) {
+                    showMessage('Reset link sent to your email!', 'success');
+                    showLogin();
                 } else {
-                    showMessage(data.error || 'Registration failed', 'error');
+                    showMessage(data.error, 'error');
                 }
             } catch (error) {
-                showMessage('Connection error. Is the server running?', 'error');
+                showMessage('Error sending reset link', 'error');
             }
+        }
+
+        async function signupStudent() {
+            const student_id = document.getElementById('regStudentId').value.trim();
+            const full_name = document.getElementById('regFullName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const password = document.getElementById('regPassword').value;
+
+            if (!student_id || !full_name || !password) {
+                showMessage('Student ID, Full Name, and Password are required', 'error');
+                return;
+            }
+            if (!email) {
+                showMessage('Email is required for password recovery', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/student/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ student_id, full_name, email, phone, password })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showMessage('Account created! Please login.', 'success');
+                    switchTab('login');
+                } else {
+                    showMessage(data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Connection error', 'error');
+            }
+        }
+
+        async function loginStudent() {
+            const student_id = document.getElementById('loginStudentId').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch('/api/student/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ student_id, password })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    currentStudent = data.student;
+                    localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
+                    document.getElementById('displayStudentId').textContent = currentStudent.student_id;
+                    document.getElementById('displayStudentName').textContent = currentStudent.full_name;
+                    document.getElementById('studentInfo').style.display = 'block';
+                    document.getElementById('authSection').style.display = 'none';
+                    document.getElementById('bookingSection').style.display = 'block';
+                    showMessage('Login successful!', 'success');
+                    loadAllSeats();
+                    loadPreferences();
+                } else {
+                    showMessage(data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Connection error', 'error');
+            }
+        }
+
+        function logout() {
+            currentStudent = null;
+            localStorage.removeItem('currentStudent');
+            document.getElementById('studentInfo').style.display = 'none';
+            document.getElementById('bookingSection').style.display = 'none';
+            document.getElementById('authSection').style.display = 'block';
+            showMessage('Logged out', 'success');
         }
 
         async function loadAllSeats() {
@@ -121,80 +346,46 @@
         function filterByFloor() {
             const floorFilter = document.getElementById('floorSelect').value;
             let filtered = allSeatsData;
-            
             if (floorFilter !== 'all') {
                 filtered = allSeatsData.filter(seat => seat.floor_number == floorFilter);
             }
-            
             displayTables(filtered);
         }
 
         function displayTables(seats) {
             const container = document.getElementById('seatsContainer');
             document.getElementById('bookingsContainer').style.display = 'none';
-            
             if (!seats || seats.length === 0) {
-                container.innerHTML = '<p style="text-align:center; padding:40px;">No seats available</p>';
+                container.innerHTML = '<p>No seats available</p>';
                 return;
             }
-            
-            // Group by floor
             const floors = {};
             seats.forEach(seat => {
                 if (!floors[seat.floor_number]) floors[seat.floor_number] = [];
                 floors[seat.floor_number].push(seat);
             });
-            
             let html = '';
-            
             for (const [floorNum, floorSeats] of Object.entries(floors)) {
                 const floorName = floorNum === '1' ? 'Ground Floor' : 'First Floor';
-                
-                // Group by table
                 const tables = {};
                 floorSeats.forEach(seat => {
                     if (!tables[seat.table_number]) tables[seat.table_number] = [];
                     tables[seat.table_number].push(seat);
                 });
-                
-                html += `<div class="floor-section">`;
-                html += `<div class="floor-title">${floorName}</div>`;
-                html += `<div class="tables-grid">`;
-                
-                // Sort tables by number
-                const sortedTables = Object.keys(tables).sort((a,b) => a - b);
-                
+                html += '<div class="floor-section"><div class="floor-title">' + floorName + '</div><div class="tables-grid">';
+                const sortedTables = Object.keys(tables).sort((a, b) => a - b);
                 for (const tableNum of sortedTables) {
                     const tableSeats = tables[tableNum];
-                    // Sort seats by seat_number
-                    tableSeats.sort((a,b) => a.seat_number - b.seat_number);
-                    
-                    // Seat positions: seat1 = top-left, seat2 = top-right, seat3 = bottom-left, seat4 = bottom-right
-                    html += `
-                        <div class="table-card">
-                            <div class="table-number">Table ${tableNum}</div>
-                            <div class="table-layout">
-                                <div class="chair ${getSeatClass(tableSeats[0])} chair-top-left" onclick="handleSeatClick(${tableSeats[0].id}, '${tableSeats[0].status}', ${tableSeats[0].verified})">
-                                    ${tableSeats[0].seat_number}
-                                </div>
-                                <div class="chair ${getSeatClass(tableSeats[1])} chair-top-right" onclick="handleSeatClick(${tableSeats[1].id}, '${tableSeats[1].status}', ${tableSeats[1].verified})">
-                                    ${tableSeats[1].seat_number}
-                                </div>
-                                <div class="chair ${getSeatClass(tableSeats[2])} chair-bottom-left" onclick="handleSeatClick(${tableSeats[2].id}, '${tableSeats[2].status}', ${tableSeats[2].verified})">
-                                    ${tableSeats[2].seat_number}
-                                </div>
-                                <div class="chair ${getSeatClass(tableSeats[3])} chair-bottom-right" onclick="handleSeatClick(${tableSeats[3].id}, '${tableSeats[3].status}', ${tableSeats[3].verified})">
-                                    ${tableSeats[3].seat_number}
-                                </div>
-                                <div class="table-rectangle"></div>
-                            </div>
-                        </div>
-                    `;
+                    tableSeats.sort((a, b) => a.seat_number - b.seat_number);
+                    html += '<div class="table-card"><div class="table-number">Table ' + tableNum + '</div><div class="table-layout">';
+                    html += '<div class="chair ' + getSeatClass(tableSeats[0]) + ' chair-top-left" onclick="handleSeatClick(' + tableSeats[0].id + ')">' + tableSeats[0].seat_number + '</div>';
+                    html += '<div class="chair ' + getSeatClass(tableSeats[1]) + ' chair-top-right" onclick="handleSeatClick(' + tableSeats[1].id + ')">' + tableSeats[1].seat_number + '</div>';
+                    html += '<div class="chair ' + getSeatClass(tableSeats[2]) + ' chair-bottom-left" onclick="handleSeatClick(' + tableSeats[2].id + ')">' + tableSeats[2].seat_number + '</div>';
+                    html += '<div class="chair ' + getSeatClass(tableSeats[3]) + ' chair-bottom-right" onclick="handleSeatClick(' + tableSeats[3].id + ')">' + tableSeats[3].seat_number + '</div>';
+                    html += '<div class="table-rectangle"></div></div></div>';
                 }
-                
-                html += `</div></div>`;
+                html += '</div></div>';
             }
-            
             container.innerHTML = html;
         }
 
@@ -205,29 +396,20 @@
             return 'booked';
         }
 
-        async function handleSeatClick(seatId, status, verified) {
-            if (!currentStudent) {
-                showMessage('Please register first', 'error');
-                return;
-            }
-            
-            if (status === 'booked') {
-                showMessage('This seat is already booked', 'error');
-                return;
-            }
-            
-            if (verified) {
-                showMessage('This seat is already verified and occupied', 'error');
-                return;
-            }
-            
+        async function handleSeatClick(seatId) {
+            if (!currentStudent) return;
             const seat = allSeatsData.find(s => s.id === seatId);
-            if (confirm(`Book ${seat.seat_label}?`)) {
-                await bookSeat(seatId);
+            if (seat.status !== 'available') {
+                showMessage('This seat is not available', 'error');
+                return;
+            }
+            const bookingDate = prompt('Enter booking date (YYYY-MM-DD) or leave empty for today:');
+            if (confirm('Book ' + seat.seat_label + '?')) {
+                await bookSeat(seatId, bookingDate);
             }
         }
 
-        async function bookSeat(seatId) {
+        async function bookSeat(seatId, bookingDate) {
             try {
                 const response = await fetch('/api/student/book', {
                     method: 'POST',
@@ -235,17 +417,16 @@
                     body: JSON.stringify({
                         student_id: currentStudent.student_id,
                         seat_id: seatId,
-                        student_name: currentStudent.full_name
+                        student_name: currentStudent.full_name,
+                        booking_date: bookingDate || null
                     })
                 });
-                
                 const data = await response.json();
-                
                 if (data.success) {
-                    showMessage('Seat booked! Please inform admin for verification (30 min limit)', 'success');
+                    showMessage(data.message, 'success');
                     loadAllSeats();
                 } else {
-                    showMessage(data.error || 'Booking failed', 'error');
+                    showMessage(data.error, 'error');
                 }
             } catch (error) {
                 showMessage('Error booking seat', 'error');
@@ -253,63 +434,135 @@
         }
 
         async function viewMyBookings() {
+            document.getElementById('filterBar').style.display = 'flex';
+            await applyFilters();
+        }
+
+        async function applyFilters() {
+            const dateRange = document.getElementById('dateRangeFilter').value;
+            const status = document.getElementById('statusFilter').value;
+            
+            let url = `/api/student/my-bookings-filtered/${currentStudent.student_id}?date_range=${dateRange}&status=${status}`;
+            
             try {
-                const response = await fetch(`/api/student/my-bookings/${currentStudent.student_id}`);
+                const response = await fetch(url);
                 const data = await response.json();
-                
-                const container = document.getElementById('bookingsContainer');
-                const seatsContainer = document.getElementById('seatsContainer');
-                seatsContainer.innerHTML = '';
-                container.style.display = 'block';
-                
-                if (!data.bookings || data.bookings.length === 0) {
-                    container.innerHTML = '<p style="text-align:center; padding:40px;">No bookings found</p><button onclick="loadAllSeats()" class="btn-primary">Back to Seats</button>';
-                    return;
-                }
-                
-                let tableHtml = `
-                    <h3>My Bookings</h3>
-                    <table class="bookings-table">
-                        <thead>
-                            <tr><th>Table</th><th>Seat</th><th>Floor</th><th>Booked</th><th>Expires</th><th>Status</th></tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                for (const booking of data.bookings) {
-                    let statusText = '';
-                    if (booking.verified) statusText = 'Verified ✓';
-                    else if (booking.cancelled) statusText = 'Cancelled ✗';
-                    else statusText = 'Pending ⏳';
-                    
-                    tableHtml += `
-                        <tr>
-                            <td>Table ${booking.table_number}</td>
-                            <td>Seat ${booking.seat_number}</td>
-                            <td>${booking.floor_number === 1 ? 'Ground' : 'First'}</td>
-                            <td>${new Date(booking.booking_time).toLocaleString()}</td>
-                            <td>${new Date(booking.expires_at).toLocaleString()}</td>
-                            <td>${statusText}</td>
-                        </tr>
-                    `;
-                }
-                
-                tableHtml += `
-                        </tbody>
-                    </table>
-                    <button onclick="loadAllSeats()" class="btn-primary" style="margin-top:20px;">Back to Seats</button>
-                `;
-                
-                container.innerHTML = tableHtml;
+                displayBookingsWithFilters(data);
             } catch (error) {
                 showMessage('Error loading bookings', 'error');
             }
         }
 
-        // Test connection
-        fetch('/api/health').catch(() => {
-            showMessage('Cannot connect to server. Please start the backend with: node server.js', 'error');
-        });
+        function displayBookingsWithFilters(data) {
+            const container = document.getElementById('bookingsContainer');
+            document.getElementById('seatsContainer').innerHTML = '';
+            container.style.display = 'block';
+            
+            if (!data.bookings || data.bookings.length === 0) {
+                container.innerHTML = '<p>No bookings found</p><button onclick="loadAllSeats()" class="btn-primary">Back to Seats</button>';
+                return;
+            }
+            
+            let html = '<h3>My Bookings</h3><table class="bookings-table"><thead><tr><th>Date</th><th>Seat</th><th>Status</th></tr></thead><tbody>';
+            for (const booking of data.bookings) {
+                let statusText = booking.verified ? '✓ Verified' : (booking.cancelled ? '✗ Cancelled' : '⏳ Pending');
+                html += `<tr><td>${new Date(booking.booking_date).toLocaleDateString()}</td><td>${booking.seat_label}</td><td>${statusText}</td></tr>`;
+            }
+            html += '</tbody></table><button onclick="loadAllSeats()" class="btn-primary">Back to Seats</button>';
+            container.innerHTML = html;
+        }
+
+        function clearFilters() {
+            document.getElementById('dateRangeFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            applyFilters();
+        }
+
+        async function loadPreferences() {
+            try {
+                const response = await fetch(`/api/student/preferences/${currentStudent.student_id}`);
+                const data = await response.json();
+                document.getElementById('preferencesContent').innerHTML = `
+                    <label>Favorite Seat: </label>
+                    <select id="favSeatId">
+                        <option value="">None</option>
+                        ${allSeatsData.map(s => `<option value="${s.id}" ${data.favorite_seat_id == s.id ? 'selected' : ''}>${s.seat_label}</option>`).join('')}
+                    </select>
+                    <br><br>
+                    <label>Preferred Floor: </label>
+                    <select id="prefFloor">
+                        <option value="">Any</option>
+                        <option value="1" ${data.preferred_floor == 1 ? 'selected' : ''}>Ground Floor</option>
+                        <option value="2" ${data.preferred_floor == 2 ? 'selected' : ''}>First Floor</option>
+                    </select>
+                    <br><br>
+                    <label><input type="checkbox" id="notificationsEnabled" ${data.notifications_enabled ? 'checked' : ''}> Enable Notifications</label>
+                    <br>
+                    <label><input type="checkbox" id="emailReminders" ${data.email_reminders ? 'checked' : ''}> Email Reminders</label>
+                `;
+            } catch (error) {
+                console.error('Error loading preferences', error);
+            }
+        }
+
+        async function savePreferences() {
+            const favSeatId = document.getElementById('favSeatId').value;
+            const prefFloor = document.getElementById('prefFloor').value;
+            const notificationsEnabled = document.getElementById('notificationsEnabled').checked;
+            const emailReminders = document.getElementById('emailReminders').checked;
+            
+            try {
+                await fetch(`/api/student/preferences/${currentStudent.student_id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        favorite_seat_id: favSeatId || null,
+                        preferred_floor: prefFloor || null,
+                        notifications_enabled: notificationsEnabled,
+                        email_reminders: emailReminders
+                    })
+                });
+                showMessage('Preferences saved!', 'success');
+                closePreferences();
+            } catch (error) {
+                showMessage('Error saving preferences', 'error');
+            }
+        }
+
+        async function bookFavoriteSeat() {
+            try {
+                const response = await fetch(`/api/student/favorite-seat/${currentStudent.student_id}`);
+                const data = await response.json();
+                if (data.favorite_seat && data.favorite_seat.status === 'available') {
+                    await bookSeat(data.favorite_seat.id, null);
+                } else {
+                    showMessage('Favorite seat is not available', 'error');
+                }
+            } catch (error) {
+                showMessage('Error booking favorite seat', 'error');
+            }
+        }
+
+        function showPreferences() {
+            document.getElementById('preferencesPanel').style.display = 'block';
+        }
+
+        function closePreferences() {
+            document.getElementById('preferencesPanel').style.display = 'none';
+        }
+
+        // Check for stored session
+        const storedStudent = localStorage.getItem('currentStudent');
+        if (storedStudent) {
+            currentStudent = JSON.parse(storedStudent);
+            document.getElementById('displayStudentId').textContent = currentStudent.student_id;
+            document.getElementById('displayStudentName').textContent = currentStudent.full_name;
+            document.getElementById('studentInfo').style.display = 'block';
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('bookingSection').style.display = 'block';
+            loadAllSeats();
+            loadPreferences();
+        }
     </script>
 </body>
 </html>
