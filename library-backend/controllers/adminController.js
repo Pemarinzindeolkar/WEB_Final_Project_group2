@@ -1,5 +1,5 @@
 import { getDb } from '../database.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 export async function adminLogin(req, res) {
   try {

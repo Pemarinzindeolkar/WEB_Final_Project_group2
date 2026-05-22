@@ -1,5 +1,5 @@
 import { getDb } from '../database.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
 // Mock email function (prints to console)
