@@ -5,150 +5,516 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Portal - Library Booking</title>
     <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        .auth-container {
-            max-width: 450px;
-            margin: 0 auto;
+        :root {
+            --navy: #0ea5e9;
+            --gold: #ffffff;
+            --gold-light: #e0f2fe;
+            --cream: #f8fafc;
+            --muted: #374151;
+            --border: #bae6fd;
+            --red: #dc2626;
         }
-        .auth-tabs {
+
+        body {
+            background: var(--cream);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 20px 40px;
+        }
+
+        /* HEADER */
+        .header {
+            background: var(--navy);
+            color: white;
+            padding: 18px 32px;
             display: flex;
-            border-bottom: 2px solid #e2e8f0;
+            align-items: center;
+            justify-content: space-between;
+            margin: 0 -20px 32px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid white;
+            flex-shrink: 0;
+        }
+
+        .header-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center center;
+            transform: scale(1.1);
+        }
+
+        .header-text h1 {
+            font-family: 'EB Garamond', serif;
+            font-size: 22px;
+            margin: 0;
+            letter-spacing: 0.3px;
+            color: white;
+        }
+
+        .header-text p {
+            margin: 2px 0 0;
+            font-size: 12px;
+            color: var(--gold-light);
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 7px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* STUDENT INFO BAR */
+        .student-info {
+            background: white;
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--navy);
+            border-radius: 10px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-bottom: 24px;
         }
+
+        .info-card h3 {
+            margin: 0;
+            font-size: 16px;
+            color: var(--navy);
+        }
+
+        .info-card p {
+            margin: 3px 0 0;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        /* AUTH LAYOUT */
+        .auth-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            align-items: start;
+        }
+
+        @media (max-width: 680px) {
+            .auth-wrapper { grid-template-columns: 1fr; }
+        }
+
+        .auth-container {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px;
+            box-shadow: 0 2px 16px rgba(15,32,68,0.07);
+        }
+
+        .auth-tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 24px;
+        }
+
         .auth-tab {
             flex: 1;
-            padding: 12px;
+            padding: 11px;
             background: none;
             border: none;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
-            color: #94a3b8;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--muted);
             cursor: pointer;
             border-bottom: 3px solid transparent;
             margin-bottom: -2px;
+            transition: all 0.2s;
         }
+
         .auth-tab.active {
-            color: #1e40af;
-            border-bottom: 3px solid #1e40af;
+            color: var(--navy);
+            border-bottom: 3px solid white;
         }
+
         .auth-panel {
             display: none;
             flex-direction: column;
-            gap: 14px;
+            gap: 13px;
         }
-        .auth-panel.active {
-            display: flex;
-        }
+
+        .auth-panel.active { display: flex; }
+
         .auth-panel h2 {
-            margin: 0 0 4px 0;
-            font-size: 20px;
-            color: #1e293b;
+            margin: 0 0 4px;
+            font-family: 'EB Garamond', serif;
+            font-size: 22px;
+            color: var(--navy);
         }
+
         .auth-panel input {
             width: 100%;
-            padding: 11px 14px;
-            border: 1.5px solid #e2e8f0;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 14px;
+            font-family: 'DM Sans', sans-serif;
             box-sizing: border-box;
             outline: none;
+            transition: border-color 0.2s;
+            background: #fafafa;
         }
+
         .auth-panel input:focus {
-            border-color: #1e40af;
+            border-color: white;
+            background: white;
         }
+
         .switch-link {
             text-align: center;
-            font-size: 14px;
-            color: #64748b;
-            margin-top: 6px;
+            font-size: 13px;
+            color: var(--muted);
         }
+
         .switch-link a {
-            color: #1e40af;
+            color: var(--navy);
+            font-weight: 600;
             cursor: pointer;
             text-decoration: none;
         }
+
         .forgot-link {
             text-align: right;
             font-size: 12px;
-            margin-top: -8px;
+            margin-top: -6px;
         }
+
         .forgot-link a {
-            color: #64748b;
+            color: var(--muted);
             cursor: pointer;
             text-decoration: none;
         }
+
+        /* LIBRARY RULES PANEL */
+        .rules-panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px 26px;
+            box-shadow: 0 2px 16px rgba(15,32,68,0.07);
+        }
+
+        .rules-panel .rules-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .rules-panel .rules-icon { display: none; }
+
+        .rules-panel h3 {
+            font-family: 'EB Garamond', serif;
+            font-size: 20px;
+            color: var(--navy);
+            margin: 0;
+        }
+
+        .rules-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .rules-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13.5px;
+            color: #374151;
+            line-height: 1.5;
+        }
+
+        .rules-list li .rule-num {
+            background: var(--navy);
+            color: var(--gold-light);
+            font-size: 11px;
+            font-weight: 700;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .rules-note {
+            margin-top: 14px;
+            padding: 10px 14px;
+            background: #e0f2fe;
+            border-left: 3px solid var(--navy);
+            border-radius: 0 6px 6px 0;
+            font-size: 12.5px;
+            color: #0369a1;
+        }
+
+        /* BUTTONS */
+        .btn-primary {
+            background: var(--navy);
+            color: white;
+            border: none;
+            padding: 11px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover { background: #0284c7; }
+
+        .btn-danger {
+            background: var(--red);
+            color: white;
+            border: none;
+            padding: 11px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+        }
+
+        /* BOOKING SECTION */
+        .admin-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .admin-controls select {
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            background: white;
+        }
+
         .filter-bar {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
             margin: 15px 0;
             padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 10px;
         }
+
         .filter-bar select, .filter-bar input {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 8px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            font-family: 'DM Sans', sans-serif;
         }
+
         .preferences-panel {
-            background: #f0f8ff;
-            padding: 15px;
+            background: #f0f6ff;
+            border: 1px solid #bfdbfe;
+            padding: 18px;
             border-radius: 10px;
             margin-bottom: 20px;
         }
+
+        .preferences-panel h3 {
+            margin: 0 0 12px;
+            color: var(--navy);
+            font-family: 'EB Garamond', serif;
+            font-size: 20px;
+        }
+
+        /* LEGEND */
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .legend-circle {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+        }
+
+        .legend-circle.available { background: #3b82f6; }
+        .legend-circle.booked { background: #ef4444; }
+        .legend-circle.verified { background: #22c55e; }
+
+        /* MESSAGE */
+        .message {
+            display: none;
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .message.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        .message.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+        /* BOOKINGS TABLE */
+        .bookings-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .bookings-table th {
+            background: var(--navy);
+            color: white;
+            padding: 10px 14px;
+            text-align: left;
+        }
+
+        .bookings-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .bookings-table tr:hover td { background: var(--cream); }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Library Booking System</h1>
-            <button onclick="goBack()" class="back-btn">← Back</button>
+    <div class="header">
+        <div class="header-left">
+            <div class="logo-circle"><img src="data:image/png;base64,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" alt="CST Logo" class="header-logo"></div>
+            <div class="header-text">
+                <h1>Library Booking System</h1>
+                <p>College of Science and Technology</p>
+            </div>
         </div>
+        <button onclick="goBack()" class="back-btn">Back</button>
+    </div>
 
+    <div class="container">
         <div id="studentInfo" class="student-info" style="display:none;">
             <div class="info-card">
                 <h3>Welcome, <span id="displayStudentName"></span></h3>
                 <p>Student ID: <span id="displayStudentId"></span></p>
             </div>
-            <button onclick="logout()" class="btn-danger" style="margin-top:10px;">Logout</button>
+            <button onclick="logout()" class="btn-danger" style="padding:8px 18px;">Logout</button>
         </div>
 
-        <div id="authSection" class="form-container auth-container">
-            <div class="auth-tabs">
-                <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Login</button>
-                <button class="auth-tab" id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
-            </div>
+        <div id="authSection">
+            <div class="auth-wrapper">
+                <!-- LOGIN / SIGNUP FORM -->
+                <div class="auth-container">
+                    <div class="auth-tabs">
+                        <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Login</button>
+                        <button class="auth-tab" id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+                    </div>
 
-            <div id="panelLogin" class="auth-panel active">
-                <h2>Student Login</h2>
-                <input type="text" id="loginStudentId" placeholder="Student ID" required>
-                <input type="password" id="loginPassword" placeholder="Password" required>
-                <div class="forgot-link"><a onclick="showForgotPassword()">Forgot Password?</a></div>
-                <button onclick="loginStudent()" class="btn-primary">Login</button>
-                <div class="switch-link">Don't have an account? <a onclick="switchTab('signup')">Sign Up</a></div>
-            </div>
+                    <div id="panelLogin" class="auth-panel active">
+                        <h2>Student Login</h2>
+                        <input type="text" id="loginStudentId" placeholder="Student ID" required>
+                        <input type="password" id="loginPassword" placeholder="Password" required>
+                        <div class="forgot-link"><a onclick="showForgotPassword()">Forgot Password?</a></div>
+                        <button onclick="loginStudent()" class="btn-primary">Login</button>
+                        <div class="switch-link">Don't have an account? <a onclick="switchTab('signup')">Sign Up</a></div>
+                    </div>
 
-            <div id="panelSignup" class="auth-panel">
-                <h2>Create Account</h2>
-                <input type="text" id="regStudentId" placeholder="Student ID" required>
-                <input type="text" id="regFullName" placeholder="Full Name" required>
-                <input type="email" id="regEmail" placeholder="Email (required for password reset)">
-                <input type="tel" id="regPhone" placeholder="Phone">
-                <input type="password" id="regPassword" placeholder="Password" required>
-                <button onclick="signupStudent()" class="btn-primary">Sign Up</button>
-                <div class="switch-link">Already have an account? <a onclick="switchTab('login')">Login</a></div>
-            </div>
+                    <div id="panelSignup" class="auth-panel">
+                        <h2>Create Account</h2>
+                        <input type="text" id="regStudentId" placeholder="Student ID" required>
+                        <input type="text" id="regFullName" placeholder="Full Name" required>
+                        <input type="email" id="regEmail" placeholder="Email (for password reset)">
+                        <input type="tel" id="regPhone" placeholder="Phone">
+                        <input type="password" id="regPassword" placeholder="Password" required>
+                        <button onclick="signupStudent()" class="btn-primary">Sign Up</button>
+                        <div class="switch-link">Already have an account? <a onclick="switchTab('login')">Login</a></div>
+                    </div>
 
-            <div id="forgotPanel" class="auth-panel" style="display:none;">
-                <h2>Forgot Password</h2>
-                <input type="text" id="forgotStudentId" placeholder="Student ID" required>
-                <input type="email" id="forgotEmail" placeholder="Email Address" required>
-                <button onclick="sendResetLink()" class="btn-primary">Send Reset Link</button>
-                <div class="switch-link"><a onclick="showLogin()">Back to Login</a></div>
+                    <div id="forgotPanel" class="auth-panel" style="display:none;">
+                        <h2>Forgot Password</h2>
+                        <input type="text" id="forgotStudentId" placeholder="Student ID" required>
+                        <input type="email" id="forgotEmail" placeholder="Email Address" required>
+                        <button onclick="sendResetLink()" class="btn-primary">Send Reset Link</button>
+                        <div class="switch-link"><a onclick="showLogin()">← Back to Login</a></div>
+                    </div>
+                </div>
+
+                <!-- LIBRARY RULES -->
+                <div class="rules-panel">
+                    <div class="rules-header">
+                        <h3>Library Rules & Guidelines</h3>
+                    </div>
+                    <ul class="rules-list">
+                        <li><span class="rule-num">1</span>Students must carry their college ID card at all times inside the library.</li>
+                        <li><span class="rule-num">2</span>Bookings are limited to 2 seats per day. Plan your visit accordingly.</li>
+                        <li><span class="rule-num">3</span>Unverified bookings will expire automatically after 30 minutes.</li>
+                        <li><span class="rule-num">4</span>Maintain silence at all times. Mobile phones must be kept on silent mode.</li>
+                        <li><span class="rule-num">5</span>Food and beverages are strictly prohibited inside the library.</li>
+                        <li><span class="rule-num">6</span>Keep your seat and the surrounding area clean and tidy.</li>
+                        <li><span class="rule-num">7</span>Cancel your booking if you are unable to attend — do not leave seats vacant.</li>
+                        <li><span class="rule-num">8</span>Library property must be handled with care. Report any damage immediately.</li>
+                        <li><span class="rule-num">9</span>Future-date bookings require admin approval before they are confirmed.</li>
+                        <li><span class="rule-num">10</span>Violation of rules may result in suspension of booking privileges.</li>
+                    </ul>
+                    <div class="rules-note">Same-day bookings are auto-verified. Future bookings await admin approval.</div>
+                </div>
             </div>
         </div>
 
+        <!-- BOOKING SECTION (shown after login) -->
         <div id="bookingSection" style="display:none;">
             <div class="legend">
                 <div class="legend-item"><div class="legend-circle available"></div><span>Available</span></div>
@@ -170,9 +536,11 @@
             <div id="preferencesPanel" class="preferences-panel" style="display:none;">
                 <h3>Seat Preferences</h3>
                 <div id="preferencesContent"></div>
-                <button onclick="savePreferences()" class="btn-primary">Save Preferences</button>
-                <button onclick="bookFavoriteSeat()" class="btn-primary">Book My Favorite Seat</button>
-                <button onclick="closePreferences()" class="btn-danger">Close</button>
+                <div style="display:flex;gap:10px;margin-top:14px;">
+                    <button onclick="savePreferences()" class="btn-primary">Save Preferences</button>
+                    <button onclick="bookFavoriteSeat()" class="btn-primary">Book My Favorite Seat</button>
+                    <button onclick="closePreferences()" class="btn-danger">Close</button>
+                </div>
             </div>
 
             <div id="filterBar" class="filter-bar" style="display:none;">
@@ -204,10 +572,7 @@
         let currentStudent = null;
         let allSeatsData = [];
 
-        // Go back to previous page
-        function goBack() {
-            window.history.back();
-        }
+        function goBack() { window.history.back(); }
 
         function switchTab(tab) {
             document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
@@ -215,7 +580,6 @@
             document.getElementById('panelLogin').classList.toggle('active', tab === 'login');
             document.getElementById('panelSignup').classList.toggle('active', tab === 'signup');
             document.getElementById('forgotPanel').style.display = 'none';
-            document.getElementById('authSection').style.display = 'block';
         }
 
         function showForgotPassword() {
@@ -241,7 +605,6 @@
         async function sendResetLink() {
             const student_id = document.getElementById('forgotStudentId').value;
             const email = document.getElementById('forgotEmail').value;
-            
             try {
                 const response = await fetch('/api/student/forgot-password', {
                     method: 'POST',
@@ -249,15 +612,9 @@
                     body: JSON.stringify({ student_id, email })
                 });
                 const data = await response.json();
-                if (data.success) {
-                    showMessage('Reset link sent to your email!', 'success');
-                    showLogin();
-                } else {
-                    showMessage(data.error, 'error');
-                }
-            } catch (error) {
-                showMessage('Error sending reset link', 'error');
-            }
+                if (data.success) { showMessage('Reset link sent to your email!', 'success'); showLogin(); }
+                else { showMessage(data.error, 'error'); }
+            } catch (error) { showMessage('Error sending reset link', 'error'); }
         }
 
         async function signupStudent() {
@@ -266,16 +623,8 @@
             const email = document.getElementById('regEmail').value.trim();
             const phone = document.getElementById('regPhone').value.trim();
             const password = document.getElementById('regPassword').value;
-
-            if (!student_id || !full_name || !password) {
-                showMessage('Student ID, Full Name, and Password are required', 'error');
-                return;
-            }
-            if (!email) {
-                showMessage('Email is required for password recovery', 'error');
-                return;
-            }
-
+            if (!student_id || !full_name || !password) { showMessage('Student ID, Full Name, and Password are required', 'error'); return; }
+            if (!email) { showMessage('Email is required for password recovery', 'error'); return; }
             try {
                 const response = await fetch('/api/student/signup', {
                     method: 'POST',
@@ -283,21 +632,14 @@
                     body: JSON.stringify({ student_id, full_name, email, phone, password })
                 });
                 const data = await response.json();
-                if (data.success) {
-                    showMessage('Account created! Please login.', 'success');
-                    switchTab('login');
-                } else {
-                    showMessage(data.error, 'error');
-                }
-            } catch (error) {
-                showMessage('Connection error', 'error');
-            }
+                if (data.success) { showMessage('Account created! Please login.', 'success'); switchTab('login'); }
+                else { showMessage(data.error, 'error'); }
+            } catch (error) { showMessage('Connection error', 'error'); }
         }
 
         async function loginStudent() {
             const student_id = document.getElementById('loginStudentId').value.trim();
             const password = document.getElementById('loginPassword').value;
-
             try {
                 const response = await fetch('/api/student/login', {
                     method: 'POST',
@@ -310,18 +652,14 @@
                     localStorage.setItem('currentStudent', JSON.stringify(currentStudent));
                     document.getElementById('displayStudentId').textContent = currentStudent.student_id;
                     document.getElementById('displayStudentName').textContent = currentStudent.full_name;
-                    document.getElementById('studentInfo').style.display = 'block';
+                    document.getElementById('studentInfo').style.display = 'flex';
                     document.getElementById('authSection').style.display = 'none';
                     document.getElementById('bookingSection').style.display = 'block';
                     showMessage('Login successful!', 'success');
                     loadAllSeats();
                     loadPreferences();
-                } else {
-                    showMessage(data.error, 'error');
-                }
-            } catch (error) {
-                showMessage('Connection error', 'error');
-            }
+                } else { showMessage(data.error, 'error'); }
+            } catch (error) { showMessage('Connection error', 'error'); }
         }
 
         function logout() {
@@ -338,40 +676,26 @@
                 const response = await fetch('/api/admin/seats');
                 allSeatsData = await response.json();
                 filterByFloor();
-            } catch (error) {
-                showMessage('Error loading seats', 'error');
-            }
+            } catch (error) { showMessage('Error loading seats', 'error'); }
         }
 
         function filterByFloor() {
             const floorFilter = document.getElementById('floorSelect').value;
-            let filtered = allSeatsData;
-            if (floorFilter !== 'all') {
-                filtered = allSeatsData.filter(seat => seat.floor_number == floorFilter);
-            }
+            let filtered = floorFilter !== 'all' ? allSeatsData.filter(s => s.floor_number == floorFilter) : allSeatsData;
             displayTables(filtered);
         }
 
         function displayTables(seats) {
             const container = document.getElementById('seatsContainer');
             document.getElementById('bookingsContainer').style.display = 'none';
-            if (!seats || seats.length === 0) {
-                container.innerHTML = '<p>No seats available</p>';
-                return;
-            }
+            if (!seats || seats.length === 0) { container.innerHTML = '<p>No seats available</p>'; return; }
             const floors = {};
-            seats.forEach(seat => {
-                if (!floors[seat.floor_number]) floors[seat.floor_number] = [];
-                floors[seat.floor_number].push(seat);
-            });
+            seats.forEach(seat => { if (!floors[seat.floor_number]) floors[seat.floor_number] = []; floors[seat.floor_number].push(seat); });
             let html = '';
             for (const [floorNum, floorSeats] of Object.entries(floors)) {
                 const floorName = floorNum === '1' ? 'Ground Floor' : 'First Floor';
                 const tables = {};
-                floorSeats.forEach(seat => {
-                    if (!tables[seat.table_number]) tables[seat.table_number] = [];
-                    tables[seat.table_number].push(seat);
-                });
+                floorSeats.forEach(seat => { if (!tables[seat.table_number]) tables[seat.table_number] = []; tables[seat.table_number].push(seat); });
                 html += '<div class="floor-section"><div class="floor-title">' + floorName + '</div><div class="tables-grid">';
                 const sortedTables = Object.keys(tables).sort((a, b) => a - b);
                 for (const tableNum of sortedTables) {
@@ -399,14 +723,9 @@
         async function handleSeatClick(seatId) {
             if (!currentStudent) return;
             const seat = allSeatsData.find(s => s.id === seatId);
-            if (seat.status !== 'available') {
-                showMessage('This seat is not available', 'error');
-                return;
-            }
+            if (seat.status !== 'available') { showMessage('This seat is not available', 'error'); return; }
             const bookingDate = prompt('Enter booking date (YYYY-MM-DD) or leave empty for today:');
-            if (confirm('Book ' + seat.seat_label + '?')) {
-                await bookSeat(seatId, bookingDate);
-            }
+            if (confirm('Book ' + seat.seat_label + '?')) { await bookSeat(seatId, bookingDate); }
         }
 
         async function bookSeat(seatId, bookingDate) {
@@ -414,23 +733,12 @@
                 const response = await fetch('/api/student/book', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        student_id: currentStudent.student_id,
-                        seat_id: seatId,
-                        student_name: currentStudent.full_name,
-                        booking_date: bookingDate || null
-                    })
+                    body: JSON.stringify({ student_id: currentStudent.student_id, seat_id: seatId, student_name: currentStudent.full_name, booking_date: bookingDate || null })
                 });
                 const data = await response.json();
-                if (data.success) {
-                    showMessage(data.message, 'success');
-                    loadAllSeats();
-                } else {
-                    showMessage(data.error, 'error');
-                }
-            } catch (error) {
-                showMessage('Error booking seat', 'error');
-            }
+                if (data.success) { showMessage(data.message, 'success'); loadAllSeats(); }
+                else { showMessage(data.error, 'error'); }
+            } catch (error) { showMessage('Error booking seat', 'error'); }
         }
 
         async function viewMyBookings() {
@@ -441,34 +749,29 @@
         async function applyFilters() {
             const dateRange = document.getElementById('dateRangeFilter').value;
             const status = document.getElementById('statusFilter').value;
-            
             let url = `/api/student/my-bookings-filtered/${currentStudent.student_id}?date_range=${dateRange}&status=${status}`;
-            
             try {
                 const response = await fetch(url);
                 const data = await response.json();
                 displayBookingsWithFilters(data);
-            } catch (error) {
-                showMessage('Error loading bookings', 'error');
-            }
+            } catch (error) { showMessage('Error loading bookings', 'error'); }
         }
 
         function displayBookingsWithFilters(data) {
             const container = document.getElementById('bookingsContainer');
             document.getElementById('seatsContainer').innerHTML = '';
             container.style.display = 'block';
-            
             if (!data.bookings || data.bookings.length === 0) {
                 container.innerHTML = '<p>No bookings found</p><button onclick="loadAllSeats()" class="btn-primary">Back to Seats</button>';
                 return;
             }
-            
-            let html = '<h3>My Bookings</h3><table class="bookings-table"><thead><tr><th>Date</th><th>Seat</th><th>Status</th></tr></thead><tbody>';
+            let html = '<h3 style="font-family:\'EB Garamond\',serif;color:#0f2044;font-size:22px;margin-bottom:14px;">My Bookings</h3>';
+            html += '<table class="bookings-table"><thead><tr><th>Date</th><th>Seat</th><th>Status</th></tr></thead><tbody>';
             for (const booking of data.bookings) {
                 let statusText = booking.verified ? '✓ Verified' : (booking.cancelled ? '✗ Cancelled' : '⏳ Pending');
                 html += `<tr><td>${new Date(booking.booking_date).toLocaleDateString()}</td><td>${booking.seat_label}</td><td>${statusText}</td></tr>`;
             }
-            html += '</tbody></table><button onclick="loadAllSeats()" class="btn-primary">Back to Seats</button>';
+            html += '</tbody></table><button onclick="loadAllSeats()" class="btn-primary" style="margin-top:16px;">Back to Seats</button>';
             container.innerHTML = html;
         }
 
@@ -487,22 +790,17 @@
                     <select id="favSeatId">
                         <option value="">None</option>
                         ${allSeatsData.map(s => `<option value="${s.id}" ${data.favorite_seat_id == s.id ? 'selected' : ''}>${s.seat_label}</option>`).join('')}
-                    </select>
-                    <br><br>
+                    </select><br><br>
                     <label>Preferred Floor: </label>
                     <select id="prefFloor">
                         <option value="">Any</option>
                         <option value="1" ${data.preferred_floor == 1 ? 'selected' : ''}>Ground Floor</option>
                         <option value="2" ${data.preferred_floor == 2 ? 'selected' : ''}>First Floor</option>
-                    </select>
-                    <br><br>
-                    <label><input type="checkbox" id="notificationsEnabled" ${data.notifications_enabled ? 'checked' : ''}> Enable Notifications</label>
-                    <br>
+                    </select><br><br>
+                    <label><input type="checkbox" id="notificationsEnabled" ${data.notifications_enabled ? 'checked' : ''}> Enable Notifications</label><br>
                     <label><input type="checkbox" id="emailReminders" ${data.email_reminders ? 'checked' : ''}> Email Reminders</label>
                 `;
-            } catch (error) {
-                console.error('Error loading preferences', error);
-            }
+            } catch (error) { console.error('Error loading preferences', error); }
         }
 
         async function savePreferences() {
@@ -510,54 +808,36 @@
             const prefFloor = document.getElementById('prefFloor').value;
             const notificationsEnabled = document.getElementById('notificationsEnabled').checked;
             const emailReminders = document.getElementById('emailReminders').checked;
-            
             try {
                 await fetch(`/api/student/preferences/${currentStudent.student_id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        favorite_seat_id: favSeatId || null,
-                        preferred_floor: prefFloor || null,
-                        notifications_enabled: notificationsEnabled,
-                        email_reminders: emailReminders
-                    })
+                    body: JSON.stringify({ favorite_seat_id: favSeatId || null, preferred_floor: prefFloor || null, notifications_enabled: notificationsEnabled, email_reminders: emailReminders })
                 });
                 showMessage('Preferences saved!', 'success');
                 closePreferences();
-            } catch (error) {
-                showMessage('Error saving preferences', 'error');
-            }
+            } catch (error) { showMessage('Error saving preferences', 'error'); }
         }
 
         async function bookFavoriteSeat() {
             try {
                 const response = await fetch(`/api/student/favorite-seat/${currentStudent.student_id}`);
                 const data = await response.json();
-                if (data.favorite_seat && data.favorite_seat.status === 'available') {
-                    await bookSeat(data.favorite_seat.id, null);
-                } else {
-                    showMessage('Favorite seat is not available', 'error');
-                }
-            } catch (error) {
-                showMessage('Error booking favorite seat', 'error');
-            }
+                if (data.favorite_seat && data.favorite_seat.status === 'available') { await bookSeat(data.favorite_seat.id, null); }
+                else { showMessage('Favorite seat is not available', 'error'); }
+            } catch (error) { showMessage('Error booking favorite seat', 'error'); }
         }
 
-        function showPreferences() {
-            document.getElementById('preferencesPanel').style.display = 'block';
-        }
+        function showPreferences() { document.getElementById('preferencesPanel').style.display = 'block'; }
+        function closePreferences() { document.getElementById('preferencesPanel').style.display = 'none'; }
 
-        function closePreferences() {
-            document.getElementById('preferencesPanel').style.display = 'none';
-        }
-
-        // Check for stored session
+        // Restore session
         const storedStudent = localStorage.getItem('currentStudent');
         if (storedStudent) {
             currentStudent = JSON.parse(storedStudent);
             document.getElementById('displayStudentId').textContent = currentStudent.student_id;
             document.getElementById('displayStudentName').textContent = currentStudent.full_name;
-            document.getElementById('studentInfo').style.display = 'block';
+            document.getElementById('studentInfo').style.display = 'flex';
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('bookingSection').style.display = 'block';
             loadAllSeats();
