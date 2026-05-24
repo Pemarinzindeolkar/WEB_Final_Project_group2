@@ -9,7 +9,6 @@ let pool;
 
 export async function getDb() {
   if (!pool) {
-    // Use environment variables for production, fallback to local for development
     pool = new Pool({
       host: process.env.DB_HOST || 'localhost',
       port: process.env.DB_PORT || 5432,
@@ -102,7 +101,6 @@ export async function initializeDatabase() {
     
     console.log('Tables created successfully!');
     
-    // Initialize seats if empty
     const seatCount = await client.query('SELECT COUNT(*) FROM seats');
     
     if (parseInt(seatCount.rows[0].count) === 0) {
@@ -113,19 +111,23 @@ export async function initializeDatabase() {
           for (let seat = 1; seat <= 4; seat++) {
             const floorName = floor === 1 ? 'Ground Floor' : 'First Floor';
             const seatLabel = `${floorName} - Table ${table}, Seat ${seat}`;
+            let zone = 'General';
+            
+            if (table <= 5) zone = 'Quiet Zone';
+            else if (table <= 15) zone = 'Group Study';
+            else zone = 'General Area';
             
             await client.query(
-              `INSERT INTO seats (floor_number, table_number, seat_number, seat_label, status) 
-               VALUES ($1, $2, $3, $4, $5)`,
-              [floor, table, seat, seatLabel, 'available']
+              `INSERT INTO seats (floor_number, table_number, seat_number, seat_label, zone, status) 
+               VALUES ($1, $2, $3, $4, $5, $6)`,
+              [floor, table, seat, seatLabel, zone, 'available']
             );
           }
         }
       }
-      console.log('200 seats created!');
+      console.log('Created 200 seats!');
     }
-    
-    // Initialize admin user
+
     const adminCount = await client.query('SELECT COUNT(*) FROM admins');
     
     if (parseInt(adminCount.rows[0].count) === 0) {
@@ -135,9 +137,9 @@ export async function initializeDatabase() {
          VALUES ($1, $2, $3)`,
         ['admin', hashedPassword, 'Library Administrator']
       );
-      console.log('Admin user created! Username: admin');
+      console.log('Admin user created! Username: admin, Password: admin123');
     }
-    
+
     console.log('Database setup complete!');
     
   } catch (error) {
