@@ -1,3 +1,9 @@
+/**
+ * SERVER.JS
+ * Main entry point for the Library Booking System backend
+ * Sets up Express server, middleware, routes, and static file serving
+ */
+
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -6,27 +12,30 @@ import { fileURLToPath } from "url";
 import studentRoutes from "./routes/studentRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 
+// Get current directory name (ES modules equivalent of __dirname)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Load environment variables from .env file
 dotenv.config();
 
+// Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// ============ MIDDLEWARE ============
+app.use(cors());                          // Enable Cross-Origin Resource Sharing
+app.use(express.json());                  // Parse JSON request bodies
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
 
-// Serve static files from frontend directory
+// Serve static files (HTML, CSS, JS) from frontend directory
 app.use(express.static(path.join(__dirname, 'frontend')));
 
-// API Routes
-app.use("/api/student", studentRoutes);
-app.use("/api/admin", adminRoutes);
+// ============ API ROUTES ============
+app.use("/api/student", studentRoutes);   // Student endpoints (registration, login, booking)
+app.use("/api/admin", adminRoutes);       // Admin endpoints (login, verification, statistics)
 
-// Health check
+// ============ HEALTH CHECK ============
 app.get("/api/health", (req, res) => {
   res.json({ 
     status: "OK", 
@@ -35,27 +44,27 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Handle root route
+// ============ FRONTEND ROUTES ============
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
-// Handle student.html route
 app.get("/student.html", (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'student.html'));
 });
 
-// Handle admin.html route
 app.get("/admin.html", (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'admin.html'));
 });
 
-// Start server
+// ============ START SERVER ============
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log(`Student Portal: http://localhost:${PORT}/student.html`);
   console.log(`Admin Portal: http://localhost:${PORT}/admin.html`);
   console.log(`Health check: http://localhost:${PORT}/api/health`);
 });
-// Import reminder scheduler
+
+// ============ BACKGROUND SERVICES ============
+// Import reminder scheduler to send email reminders for upcoming bookings
 import './utils/reminderScheduler.js';

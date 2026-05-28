@@ -1,6 +1,15 @@
+/**
+ * ADMIN PORTAL SCRIPT
+ * Handles admin login, seat management, booking verification, and statistics
+ */
+
 let adminLoggedIn = false;
 let allSeatsData = [];
 
+/**
+ * ADMIN LOGIN
+ * Authenticates admin user and loads dashboard
+ */
 async function adminLogin() {
     const username = document.getElementById('adminUsername').value;
     const password = document.getElementById('adminPassword').value;
@@ -24,8 +33,8 @@ async function adminLogin() {
             document.getElementById('loginForm').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
             document.getElementById('adminName').textContent = data.admin.full_name || data.admin.username;
-            loadStatistics();
-            loadAllSeats();
+            loadStatistics();  // Load dashboard stats
+            loadAllSeats();    // Load seat map
         } else {
             alert('Login failed: ' + data.error);
         }
@@ -34,12 +43,20 @@ async function adminLogin() {
     }
 }
 
+/**
+ * ADMIN LOGOUT
+ * Returns to login form
+ */
 function adminLogout() {
     adminLoggedIn = false;
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('adminPanel').style.display = 'none';
 }
 
+/**
+ * LOAD STATISTICS
+ * Fetches and displays system statistics on dashboard
+ */
 async function loadStatistics() {
     try {
         const response = await fetch('/api/admin/statistics');
@@ -74,17 +91,25 @@ async function loadStatistics() {
     }
 }
 
+/**
+ * LOAD ALL SEATS
+ * Fetches all seats with booking information from backend
+ */
 async function loadAllSeats() {
     try {
         const response = await fetch('/api/admin/seats');
         allSeatsData = await response.json();
-        filterByFloor();
+        filterByFloor();  // Apply floor filter
     } catch (error) {
         console.error('Error loading seats:', error);
         document.getElementById('seatsContainer').innerHTML = '<p>Error loading seats</p>';
     }
 }
 
+/**
+ * FILTER SEATS BY FLOOR
+ * Applies floor filter to seat display
+ */
 function filterByFloor() {
     const floorFilter = document.getElementById('floorFilter').value;
     let filtered = allSeatsData;
@@ -96,6 +121,11 @@ function filterByFloor() {
     displayVisualTables(filtered);
 }
 
+/**
+ * DISPLAY VISUAL TABLES
+ * Renders the seat map with tables and chairs
+ * Shows booking details and action buttons for occupied seats
+ */
 function displayVisualTables(seats) {
     const container = document.getElementById('seatsContainer');
     document.getElementById('bookingsContainer').innerHTML = '';
@@ -105,7 +135,7 @@ function displayVisualTables(seats) {
         return;
     }
     
-    // Group by floor
+    // Group seats by floor
     const floors = {};
     seats.forEach(seat => {
         if (!floors[seat.floor_number]) floors[seat.floor_number] = [];
@@ -117,7 +147,7 @@ function displayVisualTables(seats) {
     for (const [floorNum, floorSeats] of Object.entries(floors)) {
         const floorName = floorNum === '1' ? 'Ground Floor' : 'First Floor';
         
-        // Group by table
+        // Group seats by table
         const tables = {};
         floorSeats.forEach(seat => {
             if (!tables[seat.table_number]) tables[seat.table_number] = [];
@@ -163,6 +193,13 @@ function displayVisualTables(seats) {
     container.innerHTML = html;
 }
 
+/**
+ * GET SEAT CSS CLASS
+ * Returns appropriate CSS class based on seat status
+ * - available: blue
+ * - verified: green
+ * - booked: red
+ */
 function getSeatClass(seat) {
     if (!seat) return '';
     if (seat.status === 'available') return 'available';
@@ -170,6 +207,12 @@ function getSeatClass(seat) {
     return 'booked';
 }
 
+/**
+ * GET BOOKING DETAILS HTML
+ * Returns HTML for booking information and action buttons
+ * Shows student name, booking date, expiry time
+ * Includes Verify and Remove buttons for pending bookings
+ */
 function getBookingDetails(seats) {
     let details = '<div class="booking-details">';
     for (const seat of seats) {
@@ -197,6 +240,10 @@ function getBookingDetails(seats) {
     return details;
 }
 
+/**
+ * HANDLE ADMIN SEAT CLICK
+ * Shows detailed information about a seat when clicked
+ */
 async function handleAdminSeatClick(seatId) {
     const seat = allSeatsData.find(s => s.id === seatId);
     if (seat && seat.status !== 'available') {
@@ -207,6 +254,10 @@ async function handleAdminSeatClick(seatId) {
     }
 }
 
+/**
+ * VERIFY BOOKING
+ * Confirms that a student has arrived and marks booking as verified
+ */
 async function verifyBooking(bookingId) {
     if (!confirm('Verify this booking? This confirms the student has arrived.')) return;
     
@@ -221,8 +272,8 @@ async function verifyBooking(bookingId) {
         
         if (data.success) {
             alert('Booking verified successfully!');
-            loadAllSeats();
-            loadStatistics();
+            loadAllSeats();    // Refresh seat display
+            loadStatistics();  // Update statistics
         } else {
             alert('Error: ' + data.error);
         }
@@ -231,6 +282,10 @@ async function verifyBooking(bookingId) {
     }
 }
 
+/**
+ * REMOVE BOOKING
+ * Cancels a booking and releases the seat
+ */
 async function removeBooking(bookingId) {
     if (!confirm('Remove this booking? The seat will become available again.')) return;
     
@@ -243,8 +298,8 @@ async function removeBooking(bookingId) {
         
         if (data.success) {
             alert('Booking removed successfully!');
-            loadAllSeats();
-            loadStatistics();
+            loadAllSeats();    // Refresh seat display
+            loadStatistics();  // Update statistics
         } else {
             alert('Error: ' + data.error);
         }
@@ -253,6 +308,11 @@ async function removeBooking(bookingId) {
     }
 }
 
+/**
+ * LOAD ALL BOOKINGS
+ * Displays all bookings in a table format
+ * Shows student details, seat info, dates, and status
+ */
 async function loadAllBookings() {
     try {
         const response = await fetch('/api/admin/bookings');

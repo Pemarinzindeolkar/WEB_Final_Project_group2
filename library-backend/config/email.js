@@ -1,23 +1,36 @@
+// Import the nodemailer library for sending emails
 import nodemailer from 'nodemailer';
 
-// Configure email transporter (use your email service)
-// For Gmail: Enable "Less secure app access" or use App Password
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  service: 'gmail',                                // Email service provider (Google's Gmail)
   auth: {
-    user: process.env.EMAIL_USER || 'your-email@gmail.com',
-    pass: process.env.EMAIL_PASS || 'your-app-password'
+    user: process.env.EMAIL_USER || 'your-email@gmail.com',      // Email address (from .env or fallback)
+    pass: process.env.EMAIL_PASS || 'your-app-password'          // App password (from .env or fallback)
   }
 });
 
+/**
+ * SEND PASSWORD RESET EMAIL
+ * 
+ * This function is called when a student requests a password reset.
+ * It generates a unique reset link and sends it to the student's email address.
+ * 
+ * @param {string} to - Recipient's email address
+ * @param {string} resetToken - Unique token for password reset verification
+ * @param {string} studentName - Student's full name (for personalization)
+ * @returns {Promise} - Returns the result of the email send operation
+ */
 export async function sendResetEmail(to, resetToken, studentName) {
+  // Construct the password reset link with the unique token
+  // The token will be validated when the user clicks the link
   const resetLink = `http://localhost:3000/reset-password.html?token=${resetToken}`;
   
+  // Configure email content and formatting
   const mailOptions = {
-    from: '"Library System" <noreply@library.com>',
-    to: to,
-    subject: 'Password Reset Request',
-    html: `
+    from: '"Library System" <noreply@library.com>',    // Sender name and email address
+    to: to,                                            // Recipient email address
+    subject: 'Password Reset Request',                 // Email subject line
+    html: `                                            // HTML formatted email body
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #4A90E2;">Password Reset Request</h2>
         <p>Hello ${studentName},</p>
@@ -31,15 +44,31 @@ export async function sendResetEmail(to, resetToken, studentName) {
     `
   };
   
+  // Send the email using the configured transporter
   return transporter.sendMail(mailOptions);
 }
 
+/**
+ * SEND BOOKING REMINDER EMAIL
+ * 
+ * This function is called to remind students about their upcoming bookings.
+ * It sends details about the booked seat, date, and time.
+ * 
+ * @param {string} to - Recipient's email address
+ * @param {string} studentName - Student's full name (for personalization)
+ * @param {object} bookingDetails - Object containing booking information
+ * @param {string} bookingDetails.seat_label - Label/identifier of the booked seat
+ * @param {string} bookingDetails.booking_date - Date of the booking
+ * @param {string} bookingDetails.booking_time - Time when the booking was made
+ * @returns {Promise} - Returns the result of the email send operation
+ */
 export async function sendReminderEmail(to, studentName, bookingDetails) {
+  // Configure email content for booking reminder
   const mailOptions = {
-    from: '"Library System" <reminder@library.com>',
-    to: to,
-    subject: 'Booking Reminder',
-    html: `
+    from: '"Library System" <reminder@library.com>',  // Sender name and email address
+    to: to,                                            // Recipient email address
+    subject: 'Booking Reminder',                      // Email subject line
+    html: `                                            // HTML formatted email body
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #4A90E2;">Booking Reminder</h2>
         <p>Hello ${studentName},</p>
@@ -56,5 +85,6 @@ export async function sendReminderEmail(to, studentName, bookingDetails) {
     `
   };
   
+  // Send the email using the configured transporter
   return transporter.sendMail(mailOptions);
 }

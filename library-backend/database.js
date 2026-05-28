@@ -1,3 +1,8 @@
+/**
+ * DATABASE CONNECTION AND INITIALIZATION
+ * PostgreSQL database setup, connection pooling, and maintenance
+ */
+
 import pkg from 'pg';
 const { Pool } = pkg;
 import bcrypt from 'bcryptjs';
@@ -7,6 +12,11 @@ dotenv.config();
 
 let pool;
 
+/**
+ * GET DATABASE CONNECTION POOL
+ * Creates and returns a connection pool to PostgreSQL
+ * Uses environment variables for configuration, falls back to local defaults
+ */
 export async function getDb() {
   if (!pool) {
     pool = new Pool({
@@ -21,6 +31,12 @@ export async function getDb() {
   return pool;
 }
 
+/**
+ * INITIALIZE DATABASE
+ * Creates all tables if they don't exist
+ * Populates 200 seats (2 floors × 25 tables × 4 chairs)
+ * Creates default admin user
+ */
 export async function initializeDatabase() {
   const pool = await getDb();
   const client = await pool.connect();
@@ -28,6 +44,7 @@ export async function initializeDatabase() {
   try {
     console.log('Creating tables...');
     
+    // Create students table
     await client.query(`
       CREATE TABLE IF NOT EXISTS students (
         id SERIAL PRIMARY KEY,
@@ -94,6 +111,7 @@ export async function initializeDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
+      -- Performance indexes
       CREATE INDEX IF NOT EXISTS idx_bookings_student ON bookings(student_id);
       CREATE INDEX IF NOT EXISTS idx_bookings_seat ON bookings(seat_id);
       CREATE INDEX IF NOT EXISTS idx_seats_status ON seats(status, floor_number);
@@ -101,11 +119,13 @@ export async function initializeDatabase() {
     
     console.log('Tables created successfully!');
     
+    // Check if seats exist, if not create 200 seats
     const seatCount = await client.query('SELECT COUNT(*) FROM seats');
     
     if (parseInt(seatCount.rows[0].count) === 0) {
       console.log('Creating 200 seats...');
       
+      // Generate seats: 2 floors, 25 tables per floor, 4 chairs per table
       for (let floor = 1; floor <= 2; floor++) {
         for (let table = 1; table <= 25; table++) {
           for (let seat = 1; seat <= 4; seat++) {
@@ -113,6 +133,7 @@ export async function initializeDatabase() {
             const seatLabel = `${floorName} - Table ${table}, Seat ${seat}`;
             let zone = 'General';
             
+            // Assign zones based on table number
             if (table <= 5) zone = 'Quiet Zone';
             else if (table <= 15) zone = 'Group Study';
             else zone = 'General Area';
@@ -128,6 +149,7 @@ export async function initializeDatabase() {
       console.log('Created 200 seats!');
     }
 
+    // Create default admin user if none exists
     const adminCount = await client.query('SELECT COUNT(*) FROM admins');
     
     if (parseInt(adminCount.rows[0].count) === 0) {
@@ -149,11 +171,18 @@ export async function initializeDatabase() {
   }
 }
 
+/**
+ * CLEANUP EXPIRED BOOKINGS
+ * Finds unverified bookings that have passed their expiration time
+ * Marks them as cancelled and releases the associated seats
+ * Runs automatically every minute
+ */
 export async function cleanupExpiredBookings() {
   const pool = await getDb();
   const client = await pool.connect();
   
   try {
+    // Find expired unverified bookings
     const result = await client.query(`
       UPDATE bookings 
       SET cancelled = TRUE, 
@@ -166,6 +195,7 @@ export async function cleanupExpiredBookings() {
       RETURNING id
     `);
     
+    // Release seats for expired bookings
     for (const booking of result.rows) {
       await client.query(`
         UPDATE seats 
@@ -184,12 +214,16 @@ export async function cleanupExpiredBookings() {
   }
 }
 
+/**
+ * START CLEANUP SCHEDULER
+ * Runs the cleanup function every 60 seconds (1 minute)
+ */
 export function startCleanupScheduler() {
   setInterval(async () => {
     await cleanupExpiredBookings();
   }, 60000);
 }
 
-// Run initialization
+// Initialize database and start cleanup scheduler
 await initializeDatabase();
 startCleanupScheduler();
